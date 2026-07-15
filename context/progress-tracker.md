@@ -79,6 +79,13 @@ Update this file after every meaningful implementation change.
 - Fixes `ModuleNotFoundError: No module named 'constants'` when tools are run from the project root
 - Same fix already present in `tools/score_jobs.py`
 
+---
+
+### 05.2 — Constants Import Fix (`tools/scrape_linkedin_jobs.py` + `tools/extract_candidate_profile.py`)
+- Added `sys.path.insert(0, str(Path(__file__).parent.parent))` to both tools before constants imports
+- Same fix as 05.1 — needed when the scheduled task runner invokes tools from a different working directory
+- All 5 tools that import from `constants/` now have this fix
+
 ## In Progress
 
 - None yet.

@@ -13,6 +13,7 @@ from pathlib import Path
 import requests
 from dotenv import load_dotenv
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from constants.scraping_config import DAY_NAMES, DAY_URLS, MAX_JOBS
 
 load_dotenv()
