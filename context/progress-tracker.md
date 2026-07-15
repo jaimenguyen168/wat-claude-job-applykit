@@ -109,6 +109,12 @@ Update this file after every meaningful implementation change.
 - `astro.config.mjs` configured with `site` and `base` for GitHub Pages deployment at `jaimenguyen168.github.io/wat-claude-job-applykit`
 - Added `.github/workflows/deploy.yml` — GitHub Actions CI/CD that triggers on push to `main` when `web/**` changes, builds with pnpm, and deploys to GitHub Pages via `actions/deploy-pages`
 - GitHub repo Pages source must be set to **GitHub Actions** (not a branch) for the deploy step to work
+- Content replaced with real app structure: 9 workflow nodes, 4 setup steps, real tool commands matching the actual codebase
+- All components converted from `.astro` to `.tsx` React components following the appshelf pattern
+- Structure: `src/features/job-apply-kit/components/` + `views/JobApplyKitView.tsx` mounted via `client:load` in slim `index.astro`
+- Components: `JAKHeader`, `JAKHero`, `JAKWorkflowSection`, `JAKSetupSection`, `JAKFooter`, `GearDecor`, `Connector`, `BotEndMarker`
+- Theme: CSS vars on `[data-theme]`, `ThemeToggle.tsx` persists to `localStorage` key `jak-theme`
+- All component styles consolidated in `global.css`; old `.astro` component files deleted
 
 ## In Progress
 
