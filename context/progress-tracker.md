@@ -33,6 +33,15 @@ Update this file after every meaningful implementation change.
 - Overwrites today's jobs file with only the new jobs
 - `seen_ids.json` is created automatically on first run
 
+---
+
+### 02 — Candidate Profile Extractor (`tools/extract_candidate_profile.py`)
+- Reads `.data/resume.txt` — FATAL exit (halts all jobs) if missing
+- Optionally scrapes portfolio using Playwright headless Chromium (Next.js-safe)
+- Portfolio URL lives in `constants/profile_config.py` — set to `None` to skip
+- Prints combined resume + portfolio text for the agent to extract and save as `.data/candidate_profile.json`
+- Profile fields: name, contact, summary, skills, education, experience, projects, achievements, languages
+
 ## In Progress
 
 - None yet.

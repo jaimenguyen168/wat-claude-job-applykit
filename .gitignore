@@ -1,6 +1,7 @@
 .env
 .data/
-constants/
+constants/scraping_config.py
+constants/profile_config.py
 .venv/
 __pycache__/
 *.pyc

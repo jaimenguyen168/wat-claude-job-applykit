@@ -7,30 +7,32 @@ Prints combined output for the agent to process and save as candidate_profile.js
 import sys
 from pathlib import Path
 
-import requests
-from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
+
+from constants.profile_config import PORTFOLIO_URL
 
 DATA_DIR = Path(__file__).parent.parent / ".data"
 RESUME_FILE = DATA_DIR / "resume.txt"
-PORTFOLIO_URL = "https://jaimenguyen.com/projects"
 
 
 def scrape_portfolio(url: str) -> str:
     print(f"\n--- PORTFOLIO ({url}) ---", flush=True)
     try:
-        resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
-        for tag in soup(["script", "style", "noscript"]):
-            tag.decompose()
-        return soup.get_text(separator="\n", strip=True)[:6000]
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url, wait_until="load", timeout=30000)
+            page.wait_for_timeout(2000)
+            text = page.inner_text("body")
+            browser.close()
+        return text[:6000]
     except Exception as e:
         return f"Portfolio scrape failed: {e}"
 
 
 def main():
     if not RESUME_FILE.exists():
-        print(f"ERROR: Resume not found at {RESUME_FILE}")
+        print(f"FATAL: No resume found at {RESUME_FILE}. Pipeline stopped — all jobs halted.")
         sys.exit(1)
 
     resume_text = RESUME_FILE.read_text(encoding="utf-8")
@@ -38,8 +40,11 @@ def main():
     print("--- RESUME ---")
     print(resume_text)
 
-    portfolio_text = scrape_portfolio(PORTFOLIO_URL)
-    print(portfolio_text)
+    if PORTFOLIO_URL:
+        portfolio_text = scrape_portfolio(PORTFOLIO_URL)
+        print(portfolio_text)
+    else:
+        print("\n--- PORTFOLIO ---\nSkipped (no URL configured)")
 
 
 if __name__ == "__main__":
