@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Scrapes LinkedIn jobs via Apify (curious_coder/linkedin-jobs-scraper).
-Runs Mon–Thu only. Saves 50 results to .tmp/jobs_YYYY-MM-DD.json.
+Runs Mon–Thu only. Saves 50 results to .data/jobs_YYYY-MM-DD.json.
 """
 
 import json
@@ -86,8 +86,8 @@ def main():
     jobs = items_resp.json()
     print(f"Retrieved {len(jobs)} jobs.")
 
-    # Save to .tmp/
-    out_dir = Path(__file__).parent.parent / ".tmp"
+    # Save to .data/
+    out_dir = Path(__file__).parent.parent / ".data"
     out_dir.mkdir(exist_ok=True)
     date_str = today.strftime("%Y-%m-%d")
     out_path = out_dir / f"jobs_{date_str}.json"

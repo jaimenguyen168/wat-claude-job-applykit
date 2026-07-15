@@ -1,5 +1,5 @@
 .env
-.tmp/
+.data/
 constants/
 .venv/
 __pycache__/
