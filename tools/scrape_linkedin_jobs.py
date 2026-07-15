@@ -46,7 +46,7 @@ def main():
     print(f"Starting Apify actor '{ACTOR_ID}' (max {MAX_JOBS} jobs)...")
     run_resp = requests.post(
         f"https://api.apify.com/v2/acts/{ACTOR_ID}/runs",
-        json={"urls": [url], "maxItems": MAX_JOBS},
+        json={"urls": [url], "count": MAX_JOBS},
         headers=headers,
         params=params,
         timeout=30,

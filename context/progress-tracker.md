@@ -86,6 +86,21 @@ Update this file after every meaningful implementation change.
 - Same fix as 05.1 — needed when the scheduled task runner invokes tools from a different working directory
 - All 5 tools that import from `constants/` now have this fix
 
+---
+
+### 05.3 — PDF Rendering Fix (`tools/render_pdf.py`)
+- **Root cause of blank PDFs**: HTML uses `doc-page:not(:defined) { visibility: hidden; }` — when `support.js` / `doc-page.js` failed to load, the custom element was never defined, hiding all content
+- Fixed by copying `support.js` and `doc-page.js` into each job's output dir before rendering, then using `page.goto(file://...)` with `wait_until="networkidle"` + `wait_for_function("customElements.get('doc-page') !== undefined")` instead of `page.set_content()`
+- **Root cause of garbled copy-paste text**: IBM Plex Sans variable font encodes glyphs in a way that breaks PDF text extraction ("and" → "an d")
+- Fixed by downloading static per-weight woff2 files from `@ibm/plex` npm package (stored in `/tmp/ibm-plex-fonts/`) and injecting them as base64 `@font-face` rules directly into the HTML before rendering; also added `font-variant-ligatures: none` to prevent glyph ordering issues
+- Removes Google Fonts `<link>` tags before rendering so fonts load from embedded data URIs, not the network
+
+---
+
+### 05.4 — Scraper `count` Parameter Fix (`tools/scrape_linkedin_jobs.py`)
+- Actor input parameter is `count`, not `maxItems` — the actor silently ignored `maxItems` and scraped ~89 jobs per run instead of 50
+- Fixed by changing `"maxItems": MAX_JOBS` → `"count": MAX_JOBS` in the actor run payload
+
 ## In Progress
 
 - None yet.
