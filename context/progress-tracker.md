@@ -20,8 +20,18 @@ Update this file after every meaningful implementation change.
   - Wed: Web Development
   - Thu: Full-Stack Development
 - Scrapes 50 jobs per run, polls Apify until status = SUCCEEDED
-- Saves full job JSON to `.tmp/jobs_YYYY-MM-DD.json`
+- Saves full job JSON to `.data/jobs_YYYY-MM-DD.json`
 - Requires `APIFY_TOKEN` in `.env`
+
+---
+
+### 01 — Job Deduplicator (`tools/filter_new_jobs.py`)
+- Reads today's `.data/jobs_YYYY-MM-DD.json`
+- Compares each job `id` against `.data/seen_ids.json` (persistent registry)
+- Filters out already-seen jobs, keeps only new ones
+- Appends new IDs to `seen_ids.json`
+- Overwrites today's jobs file with only the new jobs
+- `seen_ids.json` is created automatically on first run
 
 ## In Progress
 
@@ -33,14 +43,14 @@ Update this file after every meaningful implementation change.
 
 ## Open Questions
 
-- What happens if a `.tmp/jobs_YYYY-MM-DD.json` already exists for today — overwrite or skip?
+- What happens if a `.data/jobs_YYYY-MM-DD.json` already exists for today — overwrite or skip?
 - Should the scraper notify on failure (e.g. Telegram via LinkIt)?
 
 ## Architecture Decisions
 
 - **Async polling over sync endpoint**: Apify's `run-sync-get-dataset-items` returned 404 for this actor; switched to async run + poll on `/actor-runs/{id}` + fetch from dataset. More robust for long-running scrapes.
 - **Day-based URL mapping**: Each weekday targets a different keyword to broaden coverage across the week without hitting the same search repeatedly.
-- **`.tmp/` for intermediates**: Raw scraped JSON is disposable and regeneratable — stored locally, not pushed to cloud until a later processing step decides what's worth keeping.
+- **`.data/` for intermediates**: Raw scraped JSON is disposable and regeneratable — stored locally, not pushed to cloud until a later processing step decides what's worth keeping.
 
 ## Session Notes
 
