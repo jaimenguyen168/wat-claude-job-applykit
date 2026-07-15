@@ -42,6 +42,16 @@ Update this file after every meaningful implementation change.
 - Prints combined resume + portfolio text for the agent to extract and save as `.data/candidate_profile.json`
 - Profile fields: name, contact, summary, skills, education, experience, projects, achievements, languages
 
+---
+
+### 03 — Job Scorer (`tools/score_jobs.py` + `tools/save_scored_jobs.py`)
+- `score_jobs.py` reads today's unscored jobs + resume + structured profile, prints full scoring context for the agent
+- Scoring prompt and rules live in `constants/scoring_config.py` (gitignored, personal)
+- Agent scores each job 0–100 and outputs a JSON array with `id`, `score`, `verdict`, `reason`
+- `save_scored_jobs.py` receives the JSON array (stdin or file) and merges `score`, `verdict`, `reason` back into today's jobs file
+- Scoring rules and threshold live in `constants/scoring_config.py` (gitignored, personal)
+- First live run: 50 jobs scored, 13 passed
+
 ## In Progress
 
 - None yet.

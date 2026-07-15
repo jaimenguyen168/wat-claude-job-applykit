@@ -2,7 +2,8 @@
 .data/
 constants/scraping_config.py
 constants/profile_config.py
+constants/scoring_config.py
 .venv/
-__pycache__/
-*.pyc
+**/__pycache__/
+**/*.pyc
 .DS_Store
