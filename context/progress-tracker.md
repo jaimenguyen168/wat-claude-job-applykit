@@ -62,6 +62,16 @@ Update this file after every meaningful implementation change.
 - `application-pack/` is gitignored — personal templates stay local
 - Output: `resume.pdf` and `cover_letter.pdf` per job (HTML files are intermediates)
 
+---
+
+### 05 — Drive Upload & Spreadsheet Logger (`tools/upload_and_log.py`)
+- Authenticates via Google OAuth2 using `credentials.json` / `token.json` (Drive + Sheets scopes)
+- For each passed job, creates `Jobs/{Company Name}/` subfolder in Google Drive if it doesn't exist
+- Uploads resume and cover letter PDFs with public "anyone with link" view permission
+- Appends a row to the tracking spreadsheet with all 14 columns: Link, Score, Title, Company Name, Company URL, Salary, Description (Text), Location, Seniority, Employment Type, Industry, Company Website, Resume (link), Cover Letter (link)
+- Skips jobs with missing output dirs or PDFs; exits cleanly if no passed jobs
+- Drive folder ID and spreadsheet ID live in `constants/google_config.py` (gitignored)
+
 ## In Progress
 
 - None yet.
