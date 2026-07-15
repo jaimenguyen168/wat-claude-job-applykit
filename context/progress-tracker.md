@@ -72,6 +72,13 @@ Update this file after every meaningful implementation change.
 - Skips jobs with missing output dirs or PDFs; exits cleanly if no passed jobs
 - Drive folder ID and spreadsheet ID live in `constants/google_config.py` (gitignored)
 
+---
+
+### 05.1 — Constants Import Fix (`tools/prepare_application_pack.py` + `tools/upload_and_log.py`)
+- Added `sys.path.insert(0, str(Path(__file__).parent.parent))` to both tools before constants imports
+- Fixes `ModuleNotFoundError: No module named 'constants'` when tools are run from the project root
+- Same fix already present in `tools/score_jobs.py`
+
 ## In Progress
 
 - None yet.

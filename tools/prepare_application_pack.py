@@ -10,6 +10,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from constants.application_config import APPLICATION_PROMPT
 
 DATA_DIR = Path(__file__).parent.parent / ".data"
