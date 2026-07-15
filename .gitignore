@@ -1,8 +1,10 @@
 .env
 .data/
+application-pack/
 constants/scraping_config.py
 constants/profile_config.py
 constants/scoring_config.py
+constants/application_config.py
 .venv/
 **/__pycache__/
 **/*.pyc

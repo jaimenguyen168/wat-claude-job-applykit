@@ -52,6 +52,16 @@ Update this file after every meaningful implementation change.
 - Scoring rules and threshold live in `constants/scoring_config.py` (gitignored, personal)
 - First live run: 50 jobs scored, 13 passed
 
+---
+
+### 04 — Application Pack Generator (`tools/prepare_application_pack.py` + `tools/render_pdf.py`)
+- `prepare_application_pack.py` reads passed jobs + resume/cover letter HTML templates + profile, prints full context for the agent
+- Agent tailors each resume and cover letter per job and saves HTML to `.data/output/{date}/{job_id}_{company}/`
+- `render_pdf.py` scans today's output dir and renders all HTML files to PDF via Playwright
+- Agent instructions live in `constants/application_config.py` (gitignored, personal)
+- `application-pack/` is gitignored — personal templates stay local
+- Output: `resume.pdf` and `cover_letter.pdf` per job (HTML files are intermediates)
+
 ## In Progress
 
 - None yet.
