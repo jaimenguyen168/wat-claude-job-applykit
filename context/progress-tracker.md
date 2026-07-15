@@ -101,6 +101,15 @@ Update this file after every meaningful implementation change.
 - Actor input parameter is `count`, not `maxItems` — the actor silently ignored `maxItems` and scraped ~89 jobs per run instead of 50
 - Fixed by changing `"maxItems": MAX_JOBS` → `"count": MAX_JOBS` in the actor run payload
 
+---
+
+### 06 — Landing Page (`web/`)
+- Initialized Astro project in `web/` with React + TypeScript + Tailwind CSS v4
+- Using pnpm as the package manager; esbuild build approval persisted via `pnpm.json`
+- `astro.config.mjs` configured with `site` and `base` for GitHub Pages deployment at `jaimenguyen168.github.io/wat-claude-job-applykit`
+- Added `.github/workflows/deploy.yml` — GitHub Actions CI/CD that triggers on push to `main` when `web/**` changes, builds with pnpm, and deploys to GitHub Pages via `actions/deploy-pages`
+- GitHub repo Pages source must be set to **GitHub Actions** (not a branch) for the deploy step to work
+
 ## In Progress
 
 - None yet.
