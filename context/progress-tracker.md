@@ -116,6 +116,15 @@ Update this file after every meaningful implementation change.
 - Theme: CSS vars on `[data-theme]`, `ThemeToggle.tsx` persists to `localStorage` key `jak-theme`
 - All component styles consolidated in `global.css`; old `.astro` component files deleted
 
+### 07 — Single-Job Scraper (`tools/scrape_single_job.py`)
+- Accepts any job URL as a CLI argument; routes to the correct provider based on domain
+- `HANDLERS` dict maps domain → handler function — adding a new source is one function + one dict entry
+- LinkedIn (`linkedin.com`) → Apify actor `ayk_6789~linkedin-job-details-scraper` (async run + poll)
+- Output schema is source-specific — no normalization forced across providers
+- Always overwrites `.data/single_job_result.json` — one file, latest job wins regardless of source
+
+---
+
 ## In Progress
 
 - None yet.
