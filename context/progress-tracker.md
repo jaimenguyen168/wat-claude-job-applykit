@@ -13,6 +13,7 @@ Update this file after every meaningful implementation change.
 ## Completed
 
 ### 00 — LinkedIn Job Scraper (`tools/scrape_linkedin_jobs.py`)
+
 - Calls Apify actor `curious_coder~linkedin-jobs-scraper` via REST API
 - Runs Mon–Thu only; each day maps to a different LinkedIn search URL:
   - Mon: Front-End Development
@@ -26,6 +27,7 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 01 — Job Deduplicator (`tools/filter_new_jobs.py`)
+
 - Reads today's `.data/jobs_YYYY-MM-DD.json`
 - Compares each job `id` against `.data/seen_ids.json` (persistent registry)
 - Filters out already-seen jobs, keeps only new ones
@@ -36,6 +38,7 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 02 — Candidate Profile Extractor (`tools/extract_candidate_profile.py`)
+
 - Reads `.data/resume.txt` — FATAL exit (halts all jobs) if missing
 - Optionally scrapes portfolio using Playwright headless Chromium (Next.js-safe)
 - Portfolio URL lives in `constants/profile_config.py` — set to `None` to skip
@@ -45,6 +48,7 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 03 — Job Scorer (`tools/score_jobs.py` + `tools/save_scored_jobs.py`)
+
 - `score_jobs.py` reads today's unscored jobs + resume + structured profile, prints full scoring context for the agent
 - Scoring prompt and rules live in `constants/scoring_config.py` (gitignored, personal)
 - Agent scores each job 0–100 and outputs a JSON array with `id`, `score`, `verdict`, `reason`
@@ -55,6 +59,7 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 04 — Application Pack Generator (`tools/prepare_application_pack.py` + `tools/render_pdf.py`)
+
 - `prepare_application_pack.py` reads passed jobs + resume/cover letter HTML templates + profile, prints full context for the agent
 - Agent tailors each resume and cover letter per job and saves HTML to `.data/output/{date}/{job_id}_{company}/`
 - `render_pdf.py` scans today's output dir and renders all HTML files to PDF via Playwright
@@ -65,6 +70,7 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 05 — Drive Upload & Spreadsheet Logger (`tools/upload_and_log.py`)
+
 - Authenticates via Google OAuth2 using `credentials.json` / `token.json` (Drive + Sheets scopes)
 - For each passed job, creates `Jobs/{Company Name}/` subfolder in Google Drive if it doesn't exist
 - Uploads resume and cover letter PDFs with public "anyone with link" view permission
@@ -75,6 +81,7 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 05.1 — Constants Import Fix (`tools/prepare_application_pack.py` + `tools/upload_and_log.py`)
+
 - Added `sys.path.insert(0, str(Path(__file__).parent.parent))` to both tools before constants imports
 - Fixes `ModuleNotFoundError: No module named 'constants'` when tools are run from the project root
 - Same fix already present in `tools/score_jobs.py`
@@ -82,6 +89,7 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 05.2 — Constants Import Fix (`tools/scrape_linkedin_jobs.py` + `tools/extract_candidate_profile.py`)
+
 - Added `sys.path.insert(0, str(Path(__file__).parent.parent))` to both tools before constants imports
 - Same fix as 05.1 — needed when the scheduled task runner invokes tools from a different working directory
 - All 5 tools that import from `constants/` now have this fix
@@ -89,6 +97,7 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 05.3 — PDF Rendering Fix (`tools/render_pdf.py`)
+
 - **Root cause of blank PDFs**: HTML uses `doc-page:not(:defined) { visibility: hidden; }` — when `support.js` / `doc-page.js` failed to load, the custom element was never defined, hiding all content
 - Fixed by copying `support.js` and `doc-page.js` into each job's output dir before rendering, then using `page.goto(file://...)` with `wait_until="networkidle"` + `wait_for_function("customElements.get('doc-page') !== undefined")` instead of `page.set_content()`
 - **Root cause of garbled copy-paste text**: IBM Plex Sans variable font encodes glyphs in a way that breaks PDF text extraction ("and" → "an d")
@@ -98,12 +107,14 @@ Update this file after every meaningful implementation change.
 ---
 
 ### 05.4 — Scraper `count` Parameter Fix (`tools/scrape_linkedin_jobs.py`)
+
 - Actor input parameter is `count`, not `maxItems` — the actor silently ignored `maxItems` and scraped ~89 jobs per run instead of 50
 - Fixed by changing `"maxItems": MAX_JOBS` → `"count": MAX_JOBS` in the actor run payload
 
 ---
 
 ### 06 — Landing Page (`web/`)
+
 - Initialized Astro project in `web/` with React + TypeScript + Tailwind CSS v4
 - Using pnpm as the package manager; esbuild build approval persisted via `pnpm.json`
 - `astro.config.mjs` configured with `site` and `base` for GitHub Pages deployment at `jaimenguyen168.github.io/wat-claude-job-applykit`
@@ -116,12 +127,30 @@ Update this file after every meaningful implementation change.
 - Theme: CSS vars on `[data-theme]`, `ThemeToggle.tsx` persists to `localStorage` key `jak-theme`
 - All component styles consolidated in `global.css`; old `.astro` component files deleted
 
+---
+
 ### 07 — Single-Job Scraper (`tools/scrape_single_job.py`)
+
 - Accepts any job URL as a CLI argument; routes to the correct provider based on domain
 - `HANDLERS` dict maps domain → handler function — adding a new source is one function + one dict entry
 - LinkedIn (`linkedin.com`) → Apify actor `ayk_6789~linkedin-job-details-scraper` (async run + poll)
 - Output schema is source-specific — no normalization forced across providers
 - Always overwrites `.data/single_job_result.json` — one file, latest job wins regardless of source
+
+---
+
+### 08 — Single-Job Pipeline
+
+**Tools:**
+
+- `tools/scrape_single_job.py` — routes any job URL to the correct provider by domain; LinkedIn uses Apify `ayk_6789~linkedin-job-details-scraper`; always overwrites `.data/single_job_result.json`
+- `tools/score_single_job.py` — prints raw job object + candidate profile for agent to score; schema-agnostic
+- `tools/save_scored_single_job.py` — merges agent's `{score, verdict, reason}` back into `single_job_result.json`
+- `tools/prepare_single_job_application_pack.py` — prints raw job + templates for agent; exits early if verdict is not yes; output goes to `.data/output/single/{job_id}_{company}/`
+- `tools/render_pdf.py single` — no changes needed; pass `single` as the dir arg to render `.data/output/single/`
+- `tools/upload_single_job.py` — uploads PDFs to Drive, logs to sheet; uses `_get()` to read any provider's field names
+
+**Workflow:** `workflows/process_single_job.md` — full SOP for the on-demand single-job flow
 
 ---
 

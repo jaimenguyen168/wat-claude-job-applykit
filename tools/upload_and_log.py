@@ -102,7 +102,7 @@ def append_row(sheets, job: dict, resume_link: str, cover_letter_link: str):
         job.get("companyName", ""),
         job.get("companyLinkedinUrl", ""),
         job.get("salary", ""),
-        (job.get("descriptionText") or "")[:500],
+        (job.get("descriptionText") or "")[:50000],
         job.get("location", ""),
         job.get("seniorityLevel", ""),
         job.get("employmentType", ""),
