@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import JAKHeader from "../components/JAKHeader";
 import JAKHero from "../components/JAKHero";
 import JAKWorkflowSection from "../components/JAKWorkflowSection";
@@ -7,6 +7,8 @@ import JAKFooter from "../components/JAKFooter";
 import GearDecor from "../components/GearDecor";
 
 export default function JobApplyKitView() {
+  const [tab, setTab] = useState<"batch" | "single">("batch");
+
   useEffect(() => {
     const handleScroll = () => {
       const y = window.scrollY;
@@ -25,10 +27,10 @@ export default function JobApplyKitView() {
     <div id="page-root" data-theme="light" className="page-root">
       <GearDecor />
       <JAKHeader />
-      <JAKHero />
-      <JAKWorkflowSection />
+      <JAKHero tab={tab} />
+      <JAKWorkflowSection tab={tab} setTab={setTab} />
       <JAKSetupSection />
-      <JAKFooter />
+      <JAKFooter tab={tab} />
     </div>
   );
 }

@@ -1,4 +1,12 @@
-export default function JAKHero() {
+interface JAKHeroProps {
+  tab: "batch" | "single";
+}
+
+export default function JAKHero({ tab }: JAKHeroProps) {
+  const cmd = tab === "batch"
+    ? ".venv/bin/python tools/scrape_linkedin_jobs.py"
+    : ".venv/bin/python tools/scrape_single_job.py <url>";
+
   return (
     <section className="page-section page-hero">
       <div className="handnote" style={{ animation: "riseIn 0.6s ease both" }}>
@@ -22,7 +30,7 @@ export default function JAKHero() {
       </div>
       <div className="hero-terminal" style={{ animation: "riseIn 0.6s 0.32s ease both" }}>
         <span className="term-prompt">$</span>
-        <span>.venv/bin/python tools/scrape_linkedin_jobs.py</span>
+        <span>{cmd}</span>
         <span className="term-caret" />
       </div>
     </section>

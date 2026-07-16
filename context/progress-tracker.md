@@ -154,6 +154,18 @@ Update this file after every meaningful implementation change.
 
 ---
 
+### 09 — Landing Page Tab Switcher
+
+- Added two-tab switcher to `JAKWorkflowSection`: **Batch · daily** (9 nodes) and **Single · on-demand** (8 nodes)
+- Tab state lifted to `JobApplyKitView` and passed down to `JAKHero`, `JAKWorkflowSection`, and `JAKFooter`
+- `JAKHero` terminal command switches with tab: `scrape_linkedin_jobs.py` (batch) → `scrape_single_job.py <url>` (single)
+- Handnote updates per tab: "9 nodes, fully linear, zero clicks" ↔ "8 nodes, one URL, done"
+- Footer node count updates per tab: "9 nodes" ↔ "8 nodes"
+- Single flow nodes: URL Input → Single Job Scraper → Profile Extractor → Single Job Scorer → Score Gate → Single Application Pack Generator → Single PDF Renderer → Single Drive & Sheets
+- CSS: `.flow-tabs`, `.flow-tab`, `.flow-tab--active` added to `global.css`
+
+---
+
 ## In Progress
 
 - None yet.

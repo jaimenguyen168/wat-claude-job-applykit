@@ -39,7 +39,7 @@ function WorkflowCard({ badge, num, title, description, cmd, rotate = "0deg", da
   );
 }
 
-const NODES: WorkflowCardProps[] = [
+const BATCH_NODES: WorkflowCardProps[] = [
   {
     badge: "TRIGGER",
     num: "01",
@@ -131,11 +131,90 @@ const NODES: WorkflowCardProps[] = [
   },
 ];
 
+const SINGLE_NODES: WorkflowCardProps[] = [
+  {
+    badge: "TRIGGER",
+    num: "01",
+    title: "URL Input",
+    description: "Pass any job URL — LinkedIn or other supported providers. The scraper routes to the correct provider automatically based on domain.",
+    rotate: "-0.4deg",
+  },
+  {
+    badge: "TOOL",
+    num: "02",
+    title: "Single Job Scraper",
+    description: "Routes to the correct provider by domain. LinkedIn uses the Apify single-job actor. Raw JSON saved to single_job_result.json — always overwrites the previous run.",
+    cmd: ".venv/bin/python tools/scrape_single_job.py <url>",
+    rotate: "0.4deg",
+  },
+  {
+    badge: "TOOL",
+    num: "03",
+    title: "Profile Extractor",
+    description: (
+      <>
+        Reads{" "}
+        <code style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13 }}>.data/resume.txt</code>
+        {" "}and optionally scrapes your portfolio URL, then outputs a structured JSON profile the scoring agent uses as its reference.
+      </>
+    ),
+    cmd: ".venv/bin/python tools/extract_candidate_profile.py",
+    rotate: "-0.3deg",
+  },
+  {
+    badge: "LLM",
+    num: "04",
+    title: "Single Job Scorer",
+    description: "Claude reads the raw job object against your profile — schema-agnostic, works for any provider's field names. Returns a 0–100 score, verdict, and one-line reason.",
+    cmd: ".venv/bin/python tools/score_single_job.py",
+    rotate: "0.3deg",
+  },
+  {
+    badge: "LOGIC",
+    num: "05",
+    title: "Score Gate",
+    description: "Score ≥ 75 continues to document generation. Anything below is logged as skipped — score and reason preserved for review.",
+    rotate: "-0.4deg",
+    dashed: true,
+  },
+  {
+    badge: "LLM",
+    num: "06",
+    title: "Single Application Pack Generator",
+    description: "Claude tailors your resume and writes a targeted cover letter for the role — grounded in your real experience and the job's language. Outputs clean HTML files.",
+    cmd: ".venv/bin/python tools/prepare_single_job_application_pack.py",
+    rotate: "0.4deg",
+  },
+  {
+    badge: "TOOL",
+    num: "07",
+    title: "Single PDF Renderer",
+    description: "Playwright renders each HTML file to a selectable, ATS-safe PDF with embedded IBM Plex fonts. One resume and one cover letter.",
+    cmd: ".venv/bin/python tools/render_pdf.py single",
+    rotate: "-0.3deg",
+  },
+  {
+    badge: "TOOL",
+    num: "08",
+    title: "Single Drive & Sheets",
+    description: "Uploads both PDFs to Google Drive under a folder named for the company. Appends one row to your tracking spreadsheet with score, salary, location, and direct PDF links.",
+    cmd: ".venv/bin/python tools/upload_single_job.py",
+    rotate: "0.3deg",
+  },
+];
+
 const GEAR_PATH =
   "M26.87 10.25 L25.78 3.33 A27 27 0 0 1 34.22 3.33 L33.13 10.25 A20 20 0 0 1 41.76 13.82 L45.87 8.16 A27 27 0 0 1 51.84 14.13 L46.18 18.24 A20 20 0 0 1 49.75 26.87 L56.67 25.78 A27 27 0 0 1 56.67 34.22 L49.75 33.13 A20 20 0 0 1 46.18 41.76 L51.84 45.87 A27 27 0 0 1 45.87 51.84 L41.76 46.18 A20 20 0 0 1 33.13 49.75 L34.22 56.67 A27 27 0 0 1 25.78 56.67 L26.87 49.75 A20 20 0 0 1 18.24 46.18 L14.13 51.84 A27 27 0 0 1 8.16 45.87 L13.82 41.76 A20 20 0 0 1 10.25 33.13 L3.33 34.22 A27 27 0 0 1 3.33 25.78 L10.25 26.87 A20 20 0 0 1 13.82 18.24 L8.16 14.13 A27 27 0 0 1 14.13 8.16 L18.24 13.82 A20 20 0 0 1 26.87 10.25 Z";
 const INNER_PATH = "M40.83 28.09 A11 11 0 1 1 26.24 19.66";
 
-export default function JAKWorkflowSection() {
+interface JAKWorkflowSectionProps {
+  tab: "batch" | "single";
+  setTab: (tab: "batch" | "single") => void;
+}
+
+export default function JAKWorkflowSection({ tab, setTab }: JAKWorkflowSectionProps) {
+  const nodes = tab === "batch" ? BATCH_NODES : SINGLE_NODES;
+
   return (
     <section className="page-section">
       <div className="section-heading">
@@ -154,14 +233,29 @@ export default function JAKWorkflowSection() {
           </g>
         </svg>
         <h2 className="section-title">The workflow</h2>
-        <span className="handnote">9 nodes, fully linear, zero clicks</span>
+        <span className="handnote">{tab === "batch" ? "9 nodes, fully linear, zero clicks" : "8 nodes, one URL, done"}</span>
+      </div>
+
+      <div className="flow-tabs">
+        <button
+          className={`flow-tab${tab === "batch" ? " flow-tab--active" : ""}`}
+          onClick={() => setTab("batch")}
+        >
+          Batch · daily
+        </button>
+        <button
+          className={`flow-tab${tab === "single" ? " flow-tab--active" : ""}`}
+          onClick={() => setTab("single")}
+        >
+          Single · on-demand
+        </button>
       </div>
 
       <div className="flow">
-        {NODES.map((node, i) => (
+        {nodes.map((node, i) => (
           <React.Fragment key={node.num}>
             <WorkflowCard {...node} />
-            {i < NODES.length - 1 && <Connector />}
+            {i < nodes.length - 1 && <Connector />}
           </React.Fragment>
         ))}
         <BotEndMarker />
