@@ -166,6 +166,39 @@ Update this file after every meaningful implementation change.
 
 ---
 
+### 10 — Multi-Provider Single-Job Scraper Expansion + Pipeline Improvements
+
+**New scrapers added to `tools/scrape_single_job.py`:**
+
+- **ZipRecruiter** — Playwright headless Chromium; dismisses login modal with Escape; extracts `listing_key` via `atob()` in page JS context
+- **Jobgether** — uses `_parse_jsonld_job` helper; strips Jobgether footer from description; forces UTF-8 encoding to fix mojibake
+- **Jobright** — uses `_parse_jsonld_job` helper directly; no post-processing needed
+- **Handshake** — uses `_parse_jsonld_job` helper; strips ` | Company | Handshake` title suffix; extracts apply link from description text
+
+**Shared JSON-LD helper (`_parse_jsonld_job`):**
+
+- Reusable extractor for any site embedding Schema.org `JobPosting` JSON-LD
+- Strips HTML from description, normalizes employment type/location, parses `baseSalary` into `"$180K – $250K/yr"` format
+- Any future JSON-LD job board can be added in ~5 lines
+
+**LinkedIn — replaced Apify with guest API:**
+
+- Replaced Apify actor with `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{id}` — no auth, sub-2-second response
+- Regex-based HTML parsing for all fields; output schema unchanged — no downstream changes needed
+- Removed `APIFY_TOKEN` dependency from `scrape_single_job.py`
+
+**Candidate profile update (`.data/candidate_profile.json`):**
+
+- Added `"Agile"` and `"Jira"` to skills array — affects scoring and resume generation for all future jobs
+
+**Score threshold enforced (`tools/save_scored_single_job.py`):**
+
+- Auto-computes verdict from score: `score >= 65 → "yes"`, else `"no"`
+- Agent's verdict input is ignored; agent's `reason` (feedback) is preserved
+- `isinstance` guard handles `None` scores (auto-`"no"`)
+
+---
+
 ## In Progress
 
 - None yet.

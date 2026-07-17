@@ -106,16 +106,16 @@ def find_pdfs(job_dir: Path) -> tuple[Path | None, Path | None]:
 
 def append_row(sheets, job: dict, resume_link: str, cover_letter_link: str):
     row = [
-        _get(job, "apply_link", "job_url", "applyUrl", "link"),
+        _get(job, "apply_link", "job_url", "applyUrl", "link", "url"),
         job.get("score", ""),
         _get(job, "job_title", "title"),
         _get(job, "company_name", "companyName"),
-        _get(job, "company_linkedin_url", "companyLinkedinUrl"),
+        _get(job, "company_linkedin_url", "companyLinkedinUrl", "company_url"),
         _get(job, "job_base_pay_range", "salary"),
-        (_get(job, "job_description", "descriptionText") or "")[:50000],
+        (_get(job, "job_description", "descriptionText", "description") or "")[:50000],
         _get(job, "job_location", "location"),
-        _get(job, "job_seniority_level", "seniorityLevel"),
-        _get(job, "job_employment_type", "employmentType"),
+        _get(job, "job_seniority_level", "seniorityLevel", "seniority_level"),
+        _get(job, "job_employment_type", "employmentType", "employment_type"),
         _get(job, "job_industries", "industries"),
         _get(job, "company_website", "companyWebsite"),
         resume_link,
@@ -143,7 +143,7 @@ def main():
         print(f"Job verdict is '{job.get('verdict')}' — skipping upload.")
         sys.exit(0)
 
-    job_id = _get(job, "job_posting_id", "id")
+    job_id = _get(job, "job_posting_id", "id", "job_id")
     company = _get(job, "company_name", "companyName", default="Unknown")
 
     job_dirs = list(OUTPUT_DIR.glob(f"{job_id}_*"))

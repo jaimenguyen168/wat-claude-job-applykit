@@ -35,8 +35,10 @@ def main():
     with open(SINGLE_JOB_FILE, encoding="utf-8") as f:
         job = json.load(f)
 
-    job["score"] = verdict.get("score")
-    job["verdict"] = verdict.get("verdict")
+    THRESHOLD = 65
+    score = verdict.get("score")
+    job["score"] = score
+    job["verdict"] = "yes" if isinstance(score, (int, float)) and score >= THRESHOLD else "no"
     job["reason"] = verdict.get("reason")
 
     with open(SINGLE_JOB_FILE, "w", encoding="utf-8") as f:

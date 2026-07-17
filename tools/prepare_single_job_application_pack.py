@@ -39,7 +39,7 @@ def main():
     cover_letter_template = COVER_LETTER_TEMPLATE.read_text(encoding="utf-8")
 
     # Build output dir from whatever ID/company fields are available
-    job_id = job.get("job_posting_id") or job.get("id") or "unknown"
+    job_id = job.get("job_posting_id") or job.get("id") or job.get("job_id") or "unknown"
     company_raw = job.get("company_name") or job.get("companyName") or "unknown"
     safe_company = "".join(c if c.isalnum() else "_" for c in company_raw)
     out_dir = DATA_DIR / "output" / "single" / f"{job_id}_{safe_company}"
