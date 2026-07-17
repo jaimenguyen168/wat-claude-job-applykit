@@ -1,23 +1,46 @@
 # WAT Job Apply Kit
 
-An automated job application pipeline built on the **WAT framework** (Workflows, Agents, Tools). It scrapes LinkedIn job listings daily, scores them against your profile, and generates tailored resume and cover letter PDFs for every role that passes — then uploads everything to Google Drive and logs it in a spreadsheet.
+An automated job application pipeline built on the **WAT framework** (Workflows, Agents, Tools). It scrapes job listings daily, scores them against your profile, and generates tailored resume and cover letter PDFs for every role that passes — then uploads everything to Google Drive and logs it in a spreadsheet.
+
+There are two modes: **batch** (runs daily, scrapes LinkedIn) and **single** (on-demand, processes any supported job URL end to end in one shot).
 
 ---
 
 ## How It Works
 
+### Batch — daily pipeline
+
 ```
 LinkedIn → Scrape → Deduplicate → Score → Generate PDFs → Upload to Drive + Log to Sheets
 ```
 
-| Step | Workflow | Tool | What it does |
-|------|----------|------|--------------|
-| 1 | Scrape jobs | `scrape_linkedin_jobs.py` | Pulls jobs from LinkedIn via Apify |
-| 2 | Deduplicate | `filter_new_jobs.py` | Removes jobs seen in previous runs |
-| 3 | Extract profile | `extract_candidate_profile.py` | Reads your resume + portfolio into structured JSON |
-| 4 | Score jobs | `score_jobs.py` + `save_scored_jobs.py` | Agent scores each job 0–100 and marks pass/fail |
-| 5 | Generate pack | `prepare_application_pack.py` + `render_pdf.py` | Agent writes tailored HTML per job; Playwright renders to PDF |
-| 6 | Upload + log | `upload_and_log.py` | Uploads PDFs to Google Drive; appends row to tracking spreadsheet |
+| Step | Tool | What it does |
+|------|------|--------------|
+| 1 | `scrape_linkedin_jobs.py` | Pulls jobs from LinkedIn via Apify |
+| 2 | `filter_new_jobs.py` | Removes jobs seen in previous runs |
+| 3 | `extract_candidate_profile.py` | Reads your resume + portfolio into structured JSON |
+| 4 | `score_jobs.py` + `save_scored_jobs.py` | Agent scores each job 0–100; auto-verdict by threshold |
+| 5 | `prepare_application_pack.py` + `render_pdf.py` | Agent writes tailored HTML per job; Playwright renders to PDF |
+| 6 | `upload_and_log.py` | Uploads PDFs to Google Drive; appends row to tracking spreadsheet |
+
+### Single — on-demand pipeline
+
+Pass any supported job URL and the full pipeline runs for that one job:
+
+```
+Job URL → Scrape → Score → Generate PDFs → Upload to Drive + Log to Sheets
+```
+
+| Step | Tool | What it does |
+|------|------|--------------|
+| 1 | `scrape_single_job.py <url>` | Routes URL to the correct provider scraper; saves `.data/single_job_result.json` |
+| 2 | `score_single_job.py` | Prints job + profile context for agent to score |
+| 2b | `save_scored_single_job.py` | Merges score/reason back in; auto-computes verdict at threshold |
+| 3 | `prepare_single_job_application_pack.py` | Prints pack context; exits early if verdict is no |
+| 4 | `render_pdf.py single` | Renders HTML files in `.data/output/single/` to PDF |
+| 5 | `upload_single_job.py` | Uploads PDFs to Drive; logs row to tracking spreadsheet |
+
+**Supported job boards:** LinkedIn, Indeed, ZipRecruiter, Jobgether, Jobright, Handshake
 
 ---
 
@@ -46,7 +69,7 @@ cp .env.example .env
 APIFY_TOKEN=your_apify_token_here
 ```
 
-Get your Apify token from [apify.com](https://apify.com) — the pipeline uses the `curious_coder/linkedin-jobs-scraper` actor.
+Get your Apify token from [apify.com](https://apify.com) — the batch pipeline uses the `curious_coder/linkedin-jobs-scraper` actor. The single-job pipeline does not require Apify; it uses provider-specific scrapers (LinkedIn guest API, Playwright, etc.) directly.
 
 ### 3. Set up Google OAuth
 
@@ -145,7 +168,7 @@ cp node_modules/@ibm/plex/IBM-Plex-Mono/fonts/split/woff2/IBMPlexMono-Medium.wof
 
 ## Running Manually
 
-Each workflow can be run independently. Run them in order:
+### Batch pipeline
 
 ```bash
 # 1. Scrape today's jobs
@@ -173,6 +196,30 @@ Each workflow can be run independently. Run them in order:
 .venv/bin/python tools/upload_and_log.py
 ```
 
+### Single-job pipeline
+
+```bash
+# 1. Scrape — pass any supported job URL
+.venv/bin/python tools/scrape_single_job.py https://www.linkedin.com/jobs/view/1234567890/
+
+# 2. Score — prints context for Claude to evaluate
+.venv/bin/python tools/score_single_job.py
+# Claude outputs: {"score": 82, "verdict": "yes", "reason": "..."}
+echo '{"score": 82, "verdict": "yes", "reason": "..."}' | .venv/bin/python tools/save_scored_single_job.py
+
+# 3. Generate pack (only if verdict is yes)
+.venv/bin/python tools/prepare_single_job_application_pack.py
+# Claude writes resume.html, cover_letter.html, title.txt to the output dir shown
+
+# 4. Render HTML to PDF
+.venv/bin/python tools/render_pdf.py single
+
+# 5. Upload PDFs to Drive and log to Sheets
+.venv/bin/python tools/upload_single_job.py
+```
+
+The verdict is auto-enforced by score threshold — whatever Claude outputs as `"verdict"` is ignored; only the score matters.
+
 ---
 
 ## Scheduled Runs
@@ -185,7 +232,7 @@ To set it up, open Claude Code and run `/schedule`, then configure a recurring t
 
 ## Output
 
-For each passing job, the pipeline produces:
+**Batch** — one directory per passing job:
 
 ```
 .data/output/YYYY-MM-DD/
@@ -197,4 +244,16 @@ For each passing job, the pipeline produces:
     title.txt
 ```
 
-PDFs are also uploaded to Google Drive under `Jobs/{Company Name}/` and logged to your tracking spreadsheet with columns for job title, company, score, salary, location, and direct links to both PDFs.
+**Single** — same structure under a persistent directory:
+
+```
+.data/output/single/
+  {job_id}_{Company}/
+    resume.html
+    {name}-resume-{company}-{title}.pdf
+    cover_letter.html
+    {name}-cover-letter-{company}-{title}.pdf
+    title.txt
+```
+
+PDFs are uploaded to Google Drive under `Jobs/{Company Name}/` and logged to your tracking spreadsheet with columns for job title, company, score, salary, location, and direct links to both PDFs.
